@@ -1,0 +1,16 @@
+requests
+asgiref
+python-telegram-bot
+pymysql
+pymysql-pool
+Pillow
+uvicorn
+cryptography
+Crypto
+pycryptodome
+python-dotenv
+aiohttp>=3.8.5
+quart>=0.18.4
+quart_compress>=0.2.1
+Werkzeug>=2.3.6
+psycopg2-binary
