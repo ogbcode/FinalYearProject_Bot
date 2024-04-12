@@ -14,7 +14,7 @@ GROUPCHATID =int(config_manager().get_metadata_config()["groupchatId"])
 ADMINID=int(config_manager().get_metadata_config()["adminId"])
 BOTID=os.getenv("botId")
 def get_image_stream():
-    image_path ="bot\pips.jpg"
+    image_path ="pips.jpg"
     image = Image.open(image_path)
     image_stream = BytesIO()
     image.save(image_stream, format="JPEG")
