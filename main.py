@@ -13,7 +13,6 @@ from bot.userInterface import userInterface_main
 from bot.Token import Token_main
 from bot.userManagment import userManagement_main
 from quart import Response, abort, request
-from Update_Context import CustomContext,WebhookUpdate
 from payments.banks.Paystack import paystackWebhook
 from payments.crypto.binancePay import binacepayWebhook
 from config.quartServer import app
@@ -21,39 +20,36 @@ from config.config_management import config_manager
 load_dotenv()
 
 
-context_types = ContextTypes(context=CustomContext)
-dp= (
-    Application.builder().token(config_manager().get_telegram_config()["telegram_apikey"]).updater(None).context_types(context_types).build()
-)
-@app.route("/telegram",methods=['POST'])  # type: ignore[misc]
-async def telegram() -> Response:
-    bot = tgram.Bot(config_manager().get_telegram_config()["telegram_apikey"])
-    """Handle incoming Telegram updates by putting them into the `update_queue`"""
-    #await bot.send_message(chat_id=1591573930, text="webhook received ")
-    await dp.update_queue.put(
-        Update.de_json(data=await request.get_json(), bot=dp.bot)
-    )
-    return Response(status=HTTPStatus.OK)
+@dataclass
+class WebhookUpdate:
+    """Simple dataclass to wrap a custom update type"""
+
+    user_id: int
+    payload: str
+
+
+class CustomContext(CallbackContext[ExtBot, dict, dict, dict]):
+    """
+    Custom CallbackContext class that makes `user_data` available for updates of type
+    `WebhookUpdate`.
+    """
+
+    @classmethod
+    def from_update(
+        cls,
+        update: object,
+        application: "Application",
+    ) -> "CustomContext":
+        if isinstance(update, WebhookUpdate):
+            return cls(application=application, user_id=update.user_id)
+        return super().from_update(update, application)
+
+
 
 @app.route("/health",methods=["GET"])
 async def healthcheck():
     return {"message":"Bot is running succesfully"}
 
-@app.route("/submitpayload", methods=["GET", "POST"])  # type: ignore[misc]
-async def custom_updates() -> Response:
-    try:
-        user_id = int(request.args["user_id"])
-        payload = request.args["payload"]
-    except KeyError:
-        abort(
-            HTTPStatus.BAD_REQUEST,
-            "Please pass both `user_id` and `payload` as query parameters.",
-        )
-    except ValueError:
-        abort(HTTPStatus.BAD_REQUEST, "The `user_id` must be a string!")
-
-    await dp.update_queue.put(WebhookUpdate(user_id=user_id, payload=payload))
-    return Response(status=HTTPStatus.OK)
 
 async def start2(update, context) -> None:
     """Display a message with instructions on how to use this bot."""
@@ -75,6 +71,35 @@ async def webhook_update(update: WebhookUpdate, context: CustomContext) -> None:
     await context.bot.send_message(chat_id=int(os.getenv("OGB_chatid")), text=text, parse_mode=ParseMode.HTML)
 
 async def main():
+    context_types = ContextTypes(context=CustomContext)
+    dp= (
+    Application.builder().token(config_manager().get_telegram_config()["telegram_apikey"]).updater(None).context_types(context_types).build())
+    dp.add_handler(CommandHandler("start2", start2))
+    @app.route("/telegram",methods=['POST'])  # type: ignore[misc]
+    async def telegram() -> Response:
+        bot = tgram.Bot(config_manager().get_telegram_config()["telegram_apikey"])
+        """Handle incoming Telegram updates by putting them into the `update_queue`"""
+        #await bot.send_message(chat_id=1591573930, text="webhook received ")
+        await dp.update_queue.put(
+            Update.de_json(data=await request.get_json(), bot=dp.bot)
+        )
+        return Response(status=HTTPStatus.OK)
+    @app.route("/submitpayload", methods=["GET", "POST"])  # type: ignore[misc]
+    async def custom_updates() -> Response:
+        try:
+            user_id = int(request.args["user_id"])
+            payload = request.args["payload"]
+        except KeyError:
+            abort(
+                HTTPStatus.BAD_REQUEST,
+                "Please pass both `user_id` and `payload` as query parameters.",
+            )
+        except ValueError:
+            abort(HTTPStatus.BAD_REQUEST, "The `user_id` must be a string!")
+
+        await dp.update_queue.put(WebhookUpdate(user_id=user_id, payload=payload))
+        return Response(status=HTTPStatus.OK)
+
     bot = tgram.Bot(config_manager().get_telegram_config()["telegram_apikey"])
     config_manager()
     Broadcastermain(dp)
@@ -82,7 +107,7 @@ async def main():
     Token_main(dp)
     userManagement_main(dp, bot)
     # Run application and webserver together
-    dp.add_handler(CommandHandler("start2", start2))
+ 
     dp.add_handler(TypeHandler(type=WebhookUpdate, callback=webhook_update))
     port=int(os.getenv("PORT",5000))
     webserver = uvicorn.Server(
