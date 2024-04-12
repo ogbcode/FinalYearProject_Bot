@@ -1,13 +1,13 @@
 import asyncio
 import os
-from dataclasses import dataclass
 from dotenv import load_dotenv
 import telegram as tgram
 from telegram import Update
 from http import HTTPStatus
-from telegram.ext import ApplicationBuilder, Application, CallbackContext, ExtBot, TypeHandler, CommandHandler,ContextTypes
+from telegram.ext import  Application, TypeHandler,ContextTypes
 from telegram.constants import ParseMode
 import uvicorn
+from Update_Context import CustomContext,WebhookUpdate,webhook_update
 from bot.broadcaster import Broadcastermain
 from bot.userInterface import userInterface_main
 from bot.Token import Token_main
@@ -19,72 +19,26 @@ from config.quartServer import app
 from config.config_management import config_manager
 load_dotenv()
 
-
-@dataclass
-class WebhookUpdate:
-    """Simple dataclass to wrap a custom update type"""
-
-    user_id: int
-    payload: str
-
-
-class CustomContext(CallbackContext[ExtBot, dict, dict, dict]):
-    """
-    Custom CallbackContext class that makes `user_data` available for updates of type
-    `WebhookUpdate`.
-    """
-
-    @classmethod
-    def from_update(
-        cls,
-        update: object,
-        application: "Application",
-    ) -> "CustomContext":
-        if isinstance(update, WebhookUpdate):
-            return cls(application=application, user_id=update.user_id)
-        return super().from_update(update, application)
-
-
-
-@app.route("/health",methods=["GET"])
-async def healthcheck():
-    return {"message":"Bot is running succesfully"}
-
-
-async def start2(update, context) -> None:
-    """Display a message with instructions on how to use this bot."""
-    text = ("test 2 works with no parameters")
-    await update.message.reply_html(text=text)
-
-
-
-async def webhook_update(update: WebhookUpdate, context: CustomContext) -> None:
-    """Handle custom updates."""
-    chat_member = await context.bot.get_chat_member(chat_id=update.user_id, user_id=update.user_id)
-    payloads = context.user_data.setdefault("payloads", [])
-    payloads.append(update.payload)
-    combined_payloads = "</code>\n• <code>".join(payloads)
-    text = (
-        f"The user {chat_member.user.mention_html()} has sent a new payload. "
-        f"So far they have sent the following payloads: \n\n• <code>{combined_payloads}</code>"
-    )
-    await context.bot.send_message(chat_id=int(os.getenv("OGB_chatid")), text=text, parse_mode=ParseMode.HTML)
-
 async def main():
     context_types = ContextTypes(context=CustomContext)
     dp= (
     Application.builder().token(config_manager().get_telegram_config()["telegram_apikey"]).updater(None).context_types(context_types).build())
-    dp.add_handler(CommandHandler("start2", start2))
-    @app.route("/telegram",methods=['POST'])  # type: ignore[misc]
+    
+    @app.route("/health",methods=["GET"])
+    async def healthcheck():
+        return {"message":"Bot is running succesfully"}
+
+
+    @app.route("/telegram",methods=['POST'])
     async def telegram() -> Response:
         bot = tgram.Bot(config_manager().get_telegram_config()["telegram_apikey"])
         """Handle incoming Telegram updates by putting them into the `update_queue`"""
-        #await bot.send_message(chat_id=1591573930, text="webhook received ")
         await dp.update_queue.put(
             Update.de_json(data=await request.get_json(), bot=dp.bot)
         )
         return Response(status=HTTPStatus.OK)
-    @app.route("/submitpayload", methods=["GET", "POST"])  # type: ignore[misc]
+    
+    @app.route("/submitpayload", methods=["GET", "POST"])
     async def custom_updates() -> Response:
         try:
             user_id = int(request.args["user_id"])
@@ -106,7 +60,7 @@ async def main():
     userInterface_main(dp)
     Token_main(dp)
     userManagement_main(dp, bot)
-    # Run application and webserver together
+
  
     dp.add_handler(TypeHandler(type=WebhookUpdate, callback=webhook_update))
     port=int(os.getenv("PORT",5000))
