@@ -55,6 +55,13 @@ async def custom_updates() -> Response:
     await dp.update_queue.put(WebhookUpdate(user_id=user_id, payload=payload))
     return Response(status=HTTPStatus.OK)
 
+async def start2(update, context) -> None:
+    """Display a message with instructions on how to use this bot."""
+    text = ("test 2 works with no parameters")
+    await update.message.reply_html(text=text)
+
+
+
 async def webhook_update(update: WebhookUpdate, context: CustomContext) -> None:
     """Handle custom updates."""
     chat_member = await context.bot.get_chat_member(chat_id=update.user_id, user_id=update.user_id)
@@ -75,7 +82,7 @@ async def main():
     Token_main(dp)
     userManagement_main(dp, bot)
     # Run application and webserver together
-
+    dp.add_handler(CommandHandler("start2", start2))
     dp.add_handler(TypeHandler(type=WebhookUpdate, callback=webhook_update))
     port=int(os.getenv("PORT",5000))
     webserver = uvicorn.Server(
