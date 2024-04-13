@@ -1,8 +1,16 @@
+import hashlib
 import json
 import os
 import requests
 from Crypto.Cipher import AES
 
+def create_hash(bot_id: str):
+    token='ChidubemRailway234'
+    data_to_hash = f"{bot_id}{token}"
+    hash_object = hashlib.sha256()
+    hash_object.update(data_to_hash.encode())
+    hashed_data = hash_object.hexdigest()
+    return hashed_data
 class ConfigurationManager:
     _instance = None
 
@@ -104,7 +112,12 @@ def decrypt_data(encrypted_text):
 def config_manager():
     botid = os.getenv("botId") #replace with env file
     if ConfigurationManager._instance is None:
-        response = requests.get("https://telebotsolutions.up.railway.app/backend/v1/bot/data/" + botid) # replace with env file
+        headers = {
+        "Authorization": f"{create_hash(botid)}",
+   
+    }
+        response = requests.get("https://telebotsolutions.up.railway.app/backend/v1/bot/data/"+botid,headers=headers) # replace with env file
+        print(response.text)
         if response.status_code == 200:
             encrypted_text = response.json()['data']
             db_connection = DbData(json.loads(decrypt_data(encrypted_text)))
