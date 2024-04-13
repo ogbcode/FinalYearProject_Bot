@@ -104,7 +104,7 @@ def decrypt_data(encrypted_text):
 def config_manager():
     botid = os.getenv("botId") #replace with env file
     if ConfigurationManager._instance is None:
-        response = requests.get("https://029b-102-89-34-116.ngrok-free.app/backend/v1/bot/data/" + botid) # replace with env file
+        response = requests.get("https://telebotsolutions.up.railway.app/backend/v1/bot/data/" + botid) # replace with env file
         if response.status_code == 200:
             encrypted_text = response.json()['data']
             db_connection = DbData(json.loads(decrypt_data(encrypted_text)))
