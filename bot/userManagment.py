@@ -14,7 +14,11 @@ GROUPCHATID =int(config_manager().get_metadata_config()["groupchatId"])
 ADMINID=int(config_manager().get_metadata_config()["adminId"])
 BOTID=os.getenv("botId")
 def get_image_stream():
-    image_path ="pips.jpg"
+    # Deployed
+    image_path ="vip.jpg"
+    # local
+    # image_path=r"C:\Users\tradi\Documents\PROJECTS\FINAL YEAR PROJECT\TelegramBot\Telegram_bot\vip.jpg"
+
     image = Image.open(image_path)
     image_stream = BytesIO()
     image.save(image_stream, format="JPEG")
@@ -39,6 +43,25 @@ async def execute_query(query, values=None, fetch=False):
         if conn:
             pool.putconn(conn)
 # Add a user to the group by invite link
+async def add_transaction(
+    transaction_id: str,
+    status: str,
+    amount: str,
+    currency: str,
+    platform: str,
+    duration: str,
+    telegarmId: str,
+):
+    query='SELECT "id"  from customer where "telegramId"=%s AND "botId"=%s'
+    values=(telegarmId,BOTID)
+    result=await execute_query(query,values,True)
+    id = str(uuid.uuid4())
+    customer_id=result[0][0]
+    date = datetime.now()
+    query='INSERT INTO transaction( "id", "transactionId", "status", "amount", "currency", "platform", "duration", "createdAt", "updatedAt", "customerId") VALUES (%s, %s,%s,%s,%s,%s,%s,%s,%s,%s)'
+    values=(id,transaction_id,status,amount,currency,platform,duration,date,date,customer_id)
+    await execute_query(query,values)
+
 async def add_user_to_group(user_id,first_name=None,duration=None):
     try:
         int(user_id)

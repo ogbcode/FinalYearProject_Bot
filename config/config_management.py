@@ -117,7 +117,6 @@ def config_manager():
    
     }
         response = requests.get("https://telebotsolutions.up.railway.app/backend/v1/bot/data/"+botid,headers=headers) # replace with env file
-        print(response.text)
         if response.status_code == 200:
             encrypted_text = response.json()['data']
             db_connection = DbData(json.loads(decrypt_data(encrypted_text)))
