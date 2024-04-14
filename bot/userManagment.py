@@ -2,6 +2,7 @@ import asyncio
 import time
 import uuid
 import pymysql
+import requests
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import os
 from io import BytesIO
@@ -46,21 +47,24 @@ async def execute_query(query, values=None, fetch=False):
 async def add_transaction(
     transaction_id: str,
     status: str,
-    amount: str,
+    amount:str,
     currency: str,
     platform: str,
-    duration: str,
+    duration:str,
     telegarmId: str,
 ):
-    query='SELECT "id"  from customer where "telegramId"=%s AND "botId"=%s'
-    values=(telegarmId,BOTID)
-    result=await execute_query(query,values,True)
-    id = str(uuid.uuid4())
-    customer_id=result[0][0]
-    date = datetime.now()
-    query='INSERT INTO transaction( "id", "transactionId", "status", "amount", "currency", "platform", "duration", "createdAt", "updatedAt", "customerId") VALUES (%s, %s,%s,%s,%s,%s,%s,%s,%s,%s)'
-    values=(id,transaction_id,status,amount,currency,platform,duration,date,date,customer_id)
-    await execute_query(query,values)
+    # query='SELECT "id"  from customer where "telegramId"=%s AND "botId"=%s'
+    # values=(telegarmId,BOTID)
+    # result=await execute_query(query,values,True)
+    # id = str(uuid.uuid4())
+    # customer_id=result[0][0]
+    # date = datetime.now()
+    # query='INSERT INTO transaction( "id", "transactionId", "status", "amount", "currency", "platform", "duration", "createdAt", "updatedAt", "customerId") VALUES (%s, %s,%s,%s,%s,%s,%s,%s,%s,%s)'
+    # values=(id,transaction_id,status,amount,currency,platform,duration,date,date,customer_id)
+    # url=f"{os.getenv('domain')}/backend/v1/customers/telegram/bot"
+    url=f"{os.getenv('domain')}/backend/v1/transaction/create"
+    data={"transactionId":transaction_id,"status":status,"amount":amount,"currency":currency,"platform":platform,"duration":duration,"telegramId":telegarmId,"botId":BOTID}
+    requests.post(url,data=data)
 
 async def add_user_to_group(user_id,first_name=None,duration=None):
     try:

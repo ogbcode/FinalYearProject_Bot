@@ -82,12 +82,12 @@ async def paystackWebhook():
             # Accessing the id, status, and metadata id
             
             transaction_id = event_data.get("id")
-            amount=event_data.get("amount")/100
+            amount=int(event_data.get("amount")/100)
             firstName = event_data.get("metadata", {}).get("firstName")
             telegramId = event_data.get("metadata", {}).get("telegramId")
             duration = event_data.get("metadata", {}).get("duration")
             await add_user_to_group(user_id=telegramId,first_name=firstName,duration=duration)
-            await add_transaction(transaction_id,"SUCCESS",amount,"Naira","Paystack",duration,telegramId)
+            await add_transaction(transaction_id,"SUCCESS",str(amount),"Naira","Paystack",duration,telegramId)
             return jsonify({"message": "Verification Succes"}), 200
 
 

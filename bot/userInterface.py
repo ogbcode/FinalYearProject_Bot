@@ -4,6 +4,8 @@ import re
 import os
 import time
 import uuid
+
+import requests
 from payments.crypto.binancePay import send_signed_request
 from config.Database import pool
 import logging
@@ -25,29 +27,40 @@ USERID=os.getenv("userId")
 
 async def user_exists_in_database(chatid):
     try:
-        query = 'SELECT * FROM customer WHERE "telegramId" = %s AND "botId" =%s'
-        values = [str(chatid),BOTID]
-        result=await execute_query(query,values,True)
-        return bool(result)
+        # query = 'SELECT * FROM customer WHERE "telegramId" = %s AND "botId" =%s'
+        # values = [str(chatid),BOTID]
+        # result=await execute_query(query,values,True)
+        # if(bool(result)):
+        #     return True
+        # else:
+        #     return False
+        url=f"{os.getenv('domain')}/backend/v1/customers/telegram/bot"
+        data={"telegramId":chatid,"botId":BOTID}
+        result=requests.get(url,data=data)
+        if(result.status_code==200):
+            return True
+        else:
+            return False
     except Exception as e:
         # print(e)
         return False
 
 async def insert_into_database(firstname, chatid):
     try:
-        print(await user_exists_in_database(chatid))
         if await user_exists_in_database(chatid):
             pass  # User already exists, no need to insert
         else:
-            query = 'INSERT INTO customer ("id","firstName", "telegramId","userId", "botId", "createdAt", "updatedAt") VALUES  (%s, %s,%s,%s,%s,%s,%s)'
-            now = datetime.now()
-            values = [str(uuid.uuid4()),str(firstname), str(chatid),USERID,BOTID,now,now]
-            await execute_query(query,values)
+            # query = 'INSERT INTO customer ("id","firstName", "telegramId","userId", "botId", "createdAt", "updatedAt") VALUES  (%s, %s,%s,%s,%s,%s,%s)'
+            # now = datetime.now()
+            # values = [str(uuid.uuid4()),str(firstname), str(chatid),USERID,BOTID,now,now]
+            # await execute_query(query,values)
+            url=f"{os.getenv('domain')}/backend/v1/customers/create"
+            data={"firstName":firstname,"telegramId":str(chatid),"userId":USERID,"botId":BOTID}
+            requests.post(url,data=data)
     except Exception as e:
         # pass
         print(e)
 async def start_command(update:Update,context):
-    # print("i entered the start command ")
     firstname=update.message.chat.first_name
     chatid=update.effective_chat.id
     await(insert_into_database(firstname,chatid))

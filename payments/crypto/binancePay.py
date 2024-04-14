@@ -2,6 +2,7 @@ import base64
 import hashlib
 import hmac
 import json
+import os
 import re
 import time
 import uuid
@@ -52,7 +53,7 @@ async def send_signed_request(chat_id,amount,duration,api_key=None, secret_key=N
     #   "orderExpireTime":"3600000000000",
     "returnUrl":metadata['success_url'],
     "description": metadata['description'],
-    "webhookUrl":f"{metadata['domain']}/binancepay",
+    "webhookUrl":f"{os.getenv('domain')}/binancepay",
     "goodsDetails": [{
         "goodsType": "02",
         "goodsCategory": "7000",
@@ -88,6 +89,7 @@ async def send_signed_request(chat_id,amount,duration,api_key=None, secret_key=N
 
 def verify_binance_pay_webhook(timestamp,nonce,signature,payload):
         binance=config_manager().get_binance_config()
+        
         binance_pay_headers = {
             'BinancePay-Timestamp': timestamp,
             'BinancePay-Nonce': nonce,

@@ -2,6 +2,7 @@ import hashlib
 import json
 import os
 import requests
+
 from Crypto.Cipher import AES
 
 def create_hash(bot_id: str):
@@ -110,13 +111,13 @@ def decrypt_data(encrypted_text):
 
 
 def config_manager():
-    botid = os.getenv("botId") #replace with env file
+    botId = os.getenv("botId") #replace with env file
     if ConfigurationManager._instance is None:
         headers = {
-        "Authorization": f"{create_hash(botid)}",
+        "Authorization": f"{create_hash(botId)}",
    
     }
-        response = requests.get("https://telebotsolutions.up.railway.app/backend/v1/bot/data/"+botid,headers=headers) # replace with env file
+        response = requests.get("https://telebotsolutions.up.railway.app/backend/v1/bot/data/"+botId,headers=headers) # replace with env file
         if response.status_code == 200:
             encrypted_text = response.json()['data']
             db_connection = DbData(json.loads(decrypt_data(encrypted_text)))
@@ -129,7 +130,7 @@ def config_manager():
 
 # Usage example
 # config_mgr = config_manager()
-# metadata_config = config_mgr.get_metadata_config()
+# metadata_config = config_manager.get_metadata_config()
 # binance_api_key = config_manager().get_config('paystack')["paystack_apikey"]
 # print("Metadata Configuration:", metadata_config)
-# print(config_mgr.get_binance_config()["binance_apikey"])
+# print(config_manager().get_binance_config()["binance_publickey"])
