@@ -82,7 +82,7 @@ async def paystackWebhook():
             # Accessing the id, status, and metadata id
             
             transaction_id = event_data.get("id")
-            amount=int(event_data.get("amount")/100)
+            amount=event_data.get("amount")/100
             firstName = event_data.get("metadata", {}).get("firstName")
             telegramId = event_data.get("metadata", {}).get("telegramId")
             duration = event_data.get("metadata", {}).get("duration")

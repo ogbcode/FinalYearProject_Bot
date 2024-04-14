@@ -1,11 +1,12 @@
 import asyncio
 import os
+import random
+import string
 import time
 from telegram.ext import CommandHandler, MessageHandler, filters, ConversationHandler,CallbackQueryHandler
 from cryptography.fernet import Fernet
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from config.Database import pool
-from bot.userManagment import add_user_to_group
+from bot.userManagment import add_transaction, add_user_to_group
 from config.config_management import config_manager
 fernet_key =Fernet.generate_key()
 fernet = Fernet(fernet_key)
@@ -19,7 +20,14 @@ async def tokenreset():
         fernet = Fernet(fernet_key)
         revoked_tokens.clear()
         await asyncio.sleep(43200)
-
+def generate_tokenid():
+    # Define the characters from which the string will be generated
+    characters = string.ascii_letters + string.digits
+    
+    # Generate a random 10-character string
+    random_string = ''.join(random.choice(characters) for _ in range(10))
+    
+    return random_string
 def encrypt_data(data):
     encrypted_data = fernet.encrypt(data.encode())
     return encrypted_data
@@ -67,8 +75,15 @@ async def decrypt(update, context):
         await context.bot.send_message(chat_id=update.message.chat_id, text="This token has been used.")
     else:
         try:
-            decrypted_data = decrypt_data(encrypted_token_bytes)
-            asyncio.create_task(add_user_to_group(user_id=update.message.chat_id,first_name=update.message.from_user.first_name,duration=decrypted_data))
+            duration = decrypt_data(encrypted_token_bytes)
+            await add_user_to_group(user_id=update.message.chat_id,first_name=update.message.from_user.first_name,duration=duration)
+            if(duration=="14"):
+                amount=config_manager().get_metadata_config()['twoweeks_price']
+            if(duration=="30"):
+                amount=config_manager().get_metadata_config()['onemonth_price']
+            if(duration=="99999"):
+                amount=config_manager().get_metadata_config()['lifetime_price']
+            await add_transaction(f"T{generate_tokenid()}","SUCCESS",amount,"USD","Token",duration,update.message.chat_id)
             revoked_tokens.append(encrypted_token)
         except Exception as e:
             print(e)

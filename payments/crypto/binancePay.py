@@ -14,7 +14,7 @@ from Crypto.Signature import pkcs1_15
 from Crypto.Hash import SHA256
 from dotenv import load_dotenv
 from config.quartServer import app
-from bot.userManagment import add_user_to_group
+from bot.userManagment import add_user_to_group,add_transaction
 from config.config_management import config_manager
 
 metadata=config_manager().get_metadata_config()
@@ -124,22 +124,26 @@ async def binacepayWebhook():
         if not  verify_binance_pay_webhook(timestamp,nonce,signature,payload):
             return jsonify({"message": "Verification failed"}), 400
         
-        data=await request.get_json()
+        response=await request.get_json()
+        data=json.loads(response)
         paymentStatus = data["bizStatus"]
 
         if (paymentStatus=="PAY_SUCCESS"):
-            merchant_trade_no = json.loads(data["data"])["merchantTradeNo"]
+            merchant_trade_no =data["data"]["merchantTradeNo"]
+            transaction_id=(data["data"]["transactionId"])
+            amount=data['data']['paymentInfo']['paymentInstructions'][0]['amount']
+            currency=data['data']['currency']
             if merchant_trade_no in processedPayments:
                 return jsonify({"message": "Payment already processed"}), 200
             chatid_match = re.search(r'id(\d+)', merchant_trade_no)
             chatid = chatid_match.group(1)
             dur_number_match = re.search(r'dur(\d+)',merchant_trade_no)
             duration = dur_number_match.group(1)
-            if await add_user_to_group(user_id=chatid,duration=duration):
-                processedPayments.add(merchant_trade_no)
-                return jsonify({"message": "Verification success"}), 200
-            else :
-                return jsonify({"message": "Verification succes but failed to add user"}), 200
+            processedPayments.add(merchant_trade_no)
+            await add_user_to_group(user_id=chatid,duration=duration)
+            await add_transaction(transaction_id,"SUCCESS",str(amount),currency,"BinancePay",duration,chatid)
+            return jsonify({"message": "Verification success"}), 200
+            
         elif(paymentStatus=="PAY_CLOSED"):
             return jsonify({"message": "Payment Timed out"}), 200
     except:
