@@ -62,7 +62,7 @@ async def add_transaction(
     # query='INSERT INTO transaction( "id", "transactionId", "status", "amount", "currency", "platform", "duration", "createdAt", "updatedAt", "customerId") VALUES (%s, %s,%s,%s,%s,%s,%s,%s,%s,%s)'
     # values=(id,transaction_id,status,amount,currency,platform,duration,date,date,customer_id)
     # url=f"{os.getenv('domain')}/backend/v1/customers/telegram/bot"
-    url=f"{os.getenv("domain")}/backend/v1/transaction/create"
+    url="https://telebotsolutions.up.railway.app/backend/v1/transaction/create"
     data={"transactionId":transaction_id,"status":status,"amount":amount,"currency":currency,"platform":platform,"duration":duration,"telegramId":telegarmId,"botId":BOTID}
     requests.post(url,data=data)
 
