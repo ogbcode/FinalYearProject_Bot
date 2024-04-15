@@ -1,5 +1,6 @@
 import asyncio
 import time
+import requests
 from telegram.ext import CommandHandler,filters,MessageHandler
 import os
 from config.Database import pool
@@ -10,13 +11,15 @@ ADMINID=int(config_manager().get_metadata_config()["adminId"])
 async def broadcast_start(update,context):
     try:
         chat_id = update.message.chat_id 
-        query=(f'SELECT "telegramId" fROM customer WHERE "botId"=\'{BOTID}\'')
+        url=f"https://telebotsolutions.up.railway.app/backend/v1/customers/telegram/id/{BOTID}"
+        
         if(chat_id==ADMINID):
-            rows =await execute_query(query=query,fetch=True)
             global broadcast_chatid
             broadcast_chatid=[]
+            rows=requests.get(url).json()
             for row in rows:
-                broadcast_chatid.append(row[0])
+                broadcast_chatid.append(row["customer_telegramId"])
+            
             await context.bot.send_message(chat_id=update.message.chat_id, text='send The message you would like to broadcast please send it precisely')
             global messx
             messx=MessageHandler(filters.VIDEO | filters.PHOTO | filters.TEXT, broadcast_message)
