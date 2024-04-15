@@ -2,7 +2,7 @@ import hashlib
 import json
 import os
 import requests
-
+from config.quartServer import backend_url
 from Crypto.Cipher import AES
 
 def create_hash(bot_id: str):
@@ -117,7 +117,7 @@ def config_manager():
         "Authorization": f"{create_hash(botId)}",
    
     }
-        response = requests.get("https://telebotsolutions.railway.internal:5896/backend/v1/bot/data/"+botId,headers=headers) # replace with env file
+        response = requests.get(f"{backend_url}/backend/v1/bot/data/"+botId,headers=headers) # replace with env file
         if response.status_code == 200:
             encrypted_text = response.json()['data']
             db_connection = DbData(json.loads(decrypt_data(encrypted_text)))

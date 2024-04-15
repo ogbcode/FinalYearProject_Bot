@@ -7,6 +7,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import os
 from io import BytesIO
 from PIL import Image
+from config.quartServer import backend_url
 from datetime import datetime, timedelta
 from telegram.ext import CommandHandler,MessageHandler,filters
 from config.Database import pool
@@ -62,7 +63,7 @@ async def add_transaction(
     # query='INSERT INTO transaction( "id", "transactionId", "status", "amount", "currency", "platform", "duration", "createdAt", "updatedAt", "customerId") VALUES (%s, %s,%s,%s,%s,%s,%s,%s,%s,%s)'
     # values=(id,transaction_id,status,amount,currency,platform,duration,date,date,customer_id)
     # url=f"{os.getenv('domain')}/backend/v1/customers/telegram/bot"
-    url="https://telebotsolutions.railway.internal:5896/backend/v1/transaction/create"
+    url=f"{backend_url}/backend/v1/transaction/create"
     data={"transactionId":transaction_id,"status":status,"amount":amount,"currency":currency,"platform":platform,"duration":duration,"telegramId":telegarmId,"botId":BOTID}
     requests.post(url,data=data)
 

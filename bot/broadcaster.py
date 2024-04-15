@@ -5,13 +5,14 @@ from telegram.ext import CommandHandler,filters,MessageHandler
 import os
 from config.Database import pool
 from bot.userManagment import execute_query
+from config.quartServer import backend_url
 from config.config_management import config_manager
 BOTID=os.getenv("botId")
 ADMINID=int(config_manager().get_metadata_config()["adminId"])
 async def broadcast_start(update,context):
     try:
         chat_id = update.message.chat_id 
-        url=f"https://telebotsolutions.railway.internal:5896/backend/v1/customers/telegram/id/{BOTID}"
+        url=f"{backend_url}/backend/v1/customers/telegram/id/{BOTID}"
         
         if(chat_id==ADMINID):
             global broadcast_chatid

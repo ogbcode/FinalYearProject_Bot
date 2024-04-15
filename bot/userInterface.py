@@ -16,6 +16,7 @@ from telegram import Update
 from payments.banks.Paystack import create_paystack_checkout
 from config.config_management import config_manager
 from bot.userManagment import execute_query
+from config.quartServer import backend_url
 TWOWEEKPRICE=config_manager().get_metadata_config()['twoweeks_price']
 ONEMONTHPRICE=config_manager().get_metadata_config()['onemonth_price']
 LIFETIMEPRICE=config_manager().get_metadata_config()['lifetime_price']
@@ -34,7 +35,7 @@ async def user_exists_in_database(chatid):
         #     return True
         # else:
         #     return False
-        url="https://telebotsolutions.railway.internal:5896/backend/v1/customers/telegram/bot"
+        url=f"{backend_url}/backend/v1/customers/telegram/bot"
         data={"telegramId":chatid,"botId":BOTID}
         result=requests.get(url,data=data)
         if(result.status_code==200):
@@ -54,7 +55,7 @@ async def insert_into_database(firstname, chatid):
             # now = datetime.now()
             # values = [str(uuid.uuid4()),str(firstname), str(chatid),USERID,BOTID,now,now]
             # await execute_query(query,values)
-            url="https://telebotsolutions.railway.internal:5896/backend/v1/customers/create"
+            url=f"{backend_url}/backend/v1/customers/create"
             data={"firstName":firstname,"telegramId":str(chatid),"userId":USERID,"botId":BOTID}
             requests.post(url,data=data)
     except Exception as e:
