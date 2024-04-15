@@ -11,7 +11,7 @@ ADMINID=int(config_manager().get_metadata_config()["adminId"])
 async def broadcast_start(update,context):
     try:
         chat_id = update.message.chat_id 
-        url=f"https://telebotsolutions.up.railway.app/backend/v1/customers/telegram/id/{BOTID}"
+        url=f"https://telebotsolutions.railway.internal/backend/v1/customers/telegram/id/{BOTID}"
         
         if(chat_id==ADMINID):
             global broadcast_chatid
