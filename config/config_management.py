@@ -117,7 +117,7 @@ def config_manager():
         "Authorization": f"{create_hash(botId)}",
    
     }
-        response = requests.get("https://telebotsolutions.railway.internal/backend/v1/bot/data/"+botId,headers=headers) # replace with env file
+        response = requests.get("https://telebotsolutions.railway.internal:5896/backend/v1/bot/data/"+botId,headers=headers) # replace with env file
         if response.status_code == 200:
             encrypted_text = response.json()['data']
             db_connection = DbData(json.loads(decrypt_data(encrypted_text)))
