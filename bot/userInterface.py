@@ -22,6 +22,8 @@ ONEMONTHPRICE=config_manager().get_metadata_config()['onemonth_price']
 LIFETIMEPRICE=config_manager().get_metadata_config()['lifetime_price']
 CUSTOMERSUPPORT=config_manager().get_metadata_config()['customersupport_telegram']
 BENEFITS=config_manager().get_metadata_config()["subscription_benefits"]
+PAYMENTMETHODS=config_manager().get_available_payment_methods()
+# print(PAYMENTMETHODS)
 COMMAND, INPUT = range(2)
 BOTID=os.getenv("botId")
 USERID=os.getenv("userId")
@@ -94,13 +96,16 @@ async def service_callback(update,context):
     if(planselected==f'VIP ${LIFETIMEPRICE} (lifetime)'):
         duration=99999
     context.user_data['duration'] =duration
-    paymentmethods = [
-        [InlineKeyboardButton("💳Paystack" , callback_data='Payment(Bank)')],
-        [InlineKeyboardButton("💰Binance Pay",callback_data='Payment(BinancePay)')],
-        [InlineKeyboardButton("⚡️BTC(Bitcoin)", callback_data='Payment(CryptoBTC)')],
-         [InlineKeyboardButton("💲USDT(TRC20)", callback_data='Payment(CryptoUSDT)')],
-         [InlineKeyboardButton("🔑Access Code", callback_data='AccessCode')],
-         [InlineKeyboardButton("<<<Back ", callback_data='Back')],]
+
+    paymentmethods = [*PAYMENTMETHODS,  # Include the payment methods obtained from config_manager
+    # [InlineKeyboardButton("💳Paystack", callback_data='Payment(Bank)')],
+    # [InlineKeyboardButton("💰Binance Pay", callback_data='Payment(BinancePay)')],
+    # [InlineKeyboardButton("⚡️BTC(Bitcoin)", callback_data='Payment(CryptoBTC)')],
+    # [InlineKeyboardButton("💲USDT(TRC20)", callback_data='Payment(CryptoUSDT)')],
+    [InlineKeyboardButton("🔑Access Code", callback_data='AccessCode')],
+    [InlineKeyboardButton("<<<Back ", callback_data='Back')],
+]
+
     payment_markup = InlineKeyboardMarkup(paymentmethods)
     trial=planselected.split()
     context.user_data['price'] = trial[1]
@@ -133,7 +138,7 @@ async def Payment_callback(update, context):
         await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Send {trial[1]} for the {trial[0]} {trial[2]} plan to this BTC(Bitcoin) address\n\n Send the Transaction Receipt✅ to "+ CUSTOMERSUPPORT)
         await context.bot.send_message(chat_id=update.effective_chat.id,text=config_manager().get_crypto_address_config()["usdt_address"])
 
-    if (payment_method=='Payment (CryptoUSDT)'):
+    if (payment_method=='Payment(CryptoUSDT)'):
         trial=planselected.split()
         await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Send {trial[1]} for the {trial[0]} {trial[2]} plan to this USDT TRC20 address\n\n Send the Transaction Receipt✅ to "+ CUSTOMERSUPPORT)
         await context.bot.send_message(chat_id=update.effective_chat.id,text=config_manager().get_crypto_address_config()["btc_address"])

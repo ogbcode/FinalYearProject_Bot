@@ -2,6 +2,7 @@ import hashlib
 import json
 import os
 import requests
+from telegram import InlineKeyboardButton
 from config.quartServer import backend_url
 from Crypto.Cipher import AES
 
@@ -37,7 +38,7 @@ class ConfigurationManager:
         if key in self.config_cache:
             return self.config_cache[key]
         else:
-            raise KeyError(f"Configuration key '{key}' not found.")
+            return None
 
     def _retrieve_config_from_db(self, key):
         config_data = self.db_connection.get(key)
@@ -72,6 +73,9 @@ class ConfigurationManager:
     def get_nowpayment_config(self):
         return self.__get_config('nowpayment')
 
+    def get_stripe_config(self):
+        return self.__get_config('nowpayment')
+
     # Method to get Paystack configuration data
     def get_paystack_config(self):
         return self.__get_config('paystack')
@@ -83,6 +87,26 @@ class ConfigurationManager:
     # Method to get Crypto Address configuration data
     def get_crypto_address_config(self):
         return self.__get_config('crypto_address')
+    def get_available_payment_methods(self):
+        available_methods = []
+
+        if self.__get_config('paystack'):
+            available_methods.append([InlineKeyboardButton("💳 Paystack", callback_data='Payment(Paystack)')])
+        if self.__get_config('stripe'):
+            available_methods.append([InlineKeyboardButton("💳 Stripe", callback_data='Payment(Stripe)')])
+        if self.__get_config('binance'):
+            available_methods.append([InlineKeyboardButton("💰 Binance Pay", callback_data='Payment(BinancePay)')])
+        if self.__get_config('coinpayment'):
+            available_methods.append([InlineKeyboardButton("💱 Coinpayment", callback_data='Payment(Coinpayment)')])
+
+        if self.__get_config('nowpayment'):
+            available_methods.append([InlineKeyboardButton("💲 Nowpayment", callback_data='Payment(Nowpayment)')])
+
+        if self.__get_config('crypto_address'):
+            available_methods.append([InlineKeyboardButton("⚡️ BTC (Bitcoin)", callback_data='Payment(CryptoBTC)')])
+            available_methods.append([InlineKeyboardButton("💲 USDT (TRC20)", callback_data='Payment(CryptoUSDT)')])
+
+        return available_methods
 
 class DbData:
     def __init__(self, database):
