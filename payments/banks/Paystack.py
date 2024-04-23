@@ -3,7 +3,7 @@ import hashlib
 import hmac
 import os
 from urllib.parse import urlparse, parse_qs
-from bot.userManagment import add_user_to_group,add_transaction
+from bot.userManagment import add_user_to_group,add_transaction,convert_country_code
 from quart import jsonify, request
 import httpx  # Async HTTP client
 from config.quartServer import app
@@ -86,8 +86,10 @@ async def paystackWebhook():
             firstName = event_data.get("metadata", {}).get("firstName")
             telegramId = event_data.get("metadata", {}).get("telegramId")
             duration = event_data.get("metadata", {}).get("duration")
+            country = event_data.get("authorization", {}).get("country_code")
+
             await add_user_to_group(user_id=telegramId,first_name=firstName,duration=duration)
-            await add_transaction(transaction_id,"SUCCESS",str(amount),"Naira","Paystack",duration,telegramId)
+            await add_transaction(transaction_id,"SUCCESS",str(amount),"Naira","Paystack",duration,telegramId,convert_country_code(country))
             return jsonify({"message": "Verification Succes"}), 200
 
 

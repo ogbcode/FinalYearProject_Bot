@@ -1,8 +1,10 @@
 import asyncio
 import time
 import uuid
+import pycountry
 import pymysql
 import requests
+from sqlalchemy import null
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import os
 from io import BytesIO
@@ -45,6 +47,17 @@ async def execute_query(query, values=None, fetch=False):
         if conn:
             pool.putconn(conn)
 # Add a user to the group by invite link
+
+def convert_country_code(country_code):
+    try:
+        country = pycountry.countries.get(alpha_2=country_code.upper())
+        if country:
+            return country.alpha_3
+        else:
+            return "Unknown"
+    except Exception as e:
+        print(e)
+    
 async def add_transaction(
     transaction_id: str,
     status: str,
@@ -53,18 +66,11 @@ async def add_transaction(
     platform: str,
     duration:str,
     telegarmId: str,
+    country:str
 ):
-    # query='SELECT "id"  from customer where "telegramId"=%s AND "botId"=%s'
-    # values=(telegarmId,BOTID)
-    # result=await execute_query(query,values,True)
-    # id = str(uuid.uuid4())
-    # customer_id=result[0][0]
-    # date = datetime.now()
-    # query='INSERT INTO transaction( "id", "transactionId", "status", "amount", "currency", "platform", "duration", "createdAt", "updatedAt", "customerId") VALUES (%s, %s,%s,%s,%s,%s,%s,%s,%s,%s)'
-    # values=(id,transaction_id,status,amount,currency,platform,duration,date,date,customer_id)
-    # url=f"{os.getenv('domain')}/backend/v1/customers/telegram/bot"
+
     url=f"{backend_url}/backend/v1/transaction/create"
-    data={"transactionId":transaction_id,"status":status,"amount":amount,"currency":currency,"platform":platform,"duration":duration,"telegramId":telegarmId,"botId":BOTID}
+    data={"transactionId":transaction_id,"status":status,"amount":amount,"currency":currency,"platform":platform,"duration":duration,"telegramId":telegarmId,"botId":BOTID,"country":country}
     requests.post(url,data=data)
 
 async def add_user_to_group(user_id,first_name=None,duration=None):

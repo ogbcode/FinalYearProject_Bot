@@ -83,7 +83,7 @@ async def decrypt(update, context):
                 amount=config_manager().get_metadata_config()['onemonth_price']
             if(duration=="99999"):
                 amount=config_manager().get_metadata_config()['lifetime_price']
-            await add_transaction(f"T{generate_tokenid()}","SUCCESS",amount,"USD","Token",duration,update.message.chat_id)
+            await add_transaction(f"T{generate_tokenid()}","SUCCESS",amount,"USD","Token",duration,update.message.chat_id,"Unknown")
             revoked_tokens.append(encrypted_token)
         except Exception as e:
             print(e)

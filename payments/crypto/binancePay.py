@@ -141,7 +141,7 @@ async def binacepayWebhook():
             duration = dur_number_match.group(1)
             processedPayments.add(merchant_trade_no)
             await add_user_to_group(user_id=chatid,duration=duration)
-            await add_transaction(transaction_id,"SUCCESS",str(amount),currency,"BinancePay",duration,chatid)
+            await add_transaction(transaction_id,"SUCCESS",str(amount),currency,"BinancePay",duration,chatid,"Unknown")
             return jsonify({"message": "Verification success"}), 200
             
         elif(paymentStatus=="PAY_CLOSED"):

@@ -77,7 +77,7 @@ async def main():
 
     async with dp:
         await dp.start()
-        bot.send_message(chat_id=int(config_manager().get_metadata_config()["adminId"]), text=f'Bot deployed succefully click /start to check it out')
+        await bot.send_message(chat_id=int(config_manager().get_metadata_config()["adminId"]), text=f'Bot deployed succefully click /start to check it out')
         await webserver.serve()
         await dp.stop()
 if __name__ == "__main__":

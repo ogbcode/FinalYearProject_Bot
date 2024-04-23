@@ -207,7 +207,7 @@ async def get_email(update, context):
      
 def userInterface_main(dp):
     conv_handler = ConversationHandler(
-    entry_points=[(CallbackQueryHandler(start_email, pattern=r'Payment\(Bank\)'))],
+    entry_points=[(CallbackQueryHandler(start_email, pattern=r'Payment\(Paystack\)'))],
     states={
         INPUT: [MessageHandler(filters.TEXT & ~filters.COMMAND, bank_handler)],
     },
