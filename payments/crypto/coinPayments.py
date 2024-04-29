@@ -41,7 +41,7 @@ def make_api_call(command, extra_params=None):
 create_payment_params = {
     'amount': 1,
     'currency1': 'USD',#passed by code
-    'currency2': 'BTC', #passed by code
+    'currency2': 'LTC', #passed by code
     'buyer_email': 'chidteubemogbuefi@gmail.com',#passed by code
     'item_name': 'test',
     'ipn_url': CALLBACK_URL,

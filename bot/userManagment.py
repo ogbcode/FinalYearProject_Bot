@@ -128,7 +128,7 @@ async def add_user_to_group(user_id,first_name=None,duration=None):
  
     except Exception as e:
         print(e)
-        await bot.send_message(chat_id=user_id, text="Error while adding you to the group")
+        await bot.send_message(chat_id=user_id, text="Error while adding you to the group please contact support using /help")
         return False
     
     # remove subscripers with expired subscription

@@ -6,6 +6,7 @@ import time
 import uuid
 
 import requests
+from payments.banks.Stripe import create_stripe_checkout
 from payments.crypto.binancePay import send_signed_request
 from config.Database import pool
 import logging
@@ -22,7 +23,8 @@ ONEMONTHPRICE=config_manager().get_metadata_config()['onemonth_price']
 LIFETIMEPRICE=config_manager().get_metadata_config()['lifetime_price']
 CUSTOMERSUPPORT=config_manager().get_metadata_config()['customersupport_telegram']
 BENEFITS=config_manager().get_metadata_config()["subscription_benefits"]
-PAYMENTMETHODS=config_manager().get_available_payment_methods()
+BANKPAYMENT=config_manager().get_available_bank_methods()
+CRYPTOPAYMENT=config_manager().get_available_crypto_methods()
 # print(PAYMENTMETHODS)
 COMMAND, INPUT = range(2)
 BOTID=os.getenv("botId")
@@ -97,11 +99,9 @@ async def service_callback(update,context):
         duration=99999
     context.user_data['duration'] =duration
 
-    paymentmethods = [*PAYMENTMETHODS,  # Include the payment methods obtained from config_manager
-    # [InlineKeyboardButton("💳Paystack", callback_data='Payment(Bank)')],
-    # [InlineKeyboardButton("💰Binance Pay", callback_data='Payment(BinancePay)')],
-    # [InlineKeyboardButton("⚡️BTC(Bitcoin)", callback_data='Payment(CryptoBTC)')],
-    # [InlineKeyboardButton("💲USDT(TRC20)", callback_data='Payment(CryptoUSDT)')],
+    paymentmethods = [#*PAYMENTMETHODS,  # Include the payment methods obtained from config_manager
+    [InlineKeyboardButton("💳Bank", callback_data='Payment(Bank)')],
+    [InlineKeyboardButton("⚡️Crypto", callback_data='Payment(Crypto)')],
     [InlineKeyboardButton("🔑Access Code", callback_data='AccessCode')],
     [InlineKeyboardButton("<<<Back ", callback_data='Back')],
 ]
@@ -111,9 +111,33 @@ async def service_callback(update,context):
     context.user_data['price'] = trial[1]
     match = re.search(r'\((.*?)\)', trial[2])
     period = match.group(1)
-    await query.edit_message_text(text=f'Your benefits:\n✅*VIP*\(Channel Access\)\n\nPrice:*{trial[1]}*\nBilling period:*{period}*\nBilling mode:*Non recurring* ', reply_markup=payment_markup,parse_mode='MarkdownV2')
+    await query.edit_message_text(text=f'Your benefits:\n✅*VIP*\(Channel Access\)\n\nPrice:*{trial[1]}*\nBilling Period:*{period}*\nBilling Mode:*Non recurring* ', reply_markup=payment_markup,parse_mode='MarkdownV2')
 
-async def Payment_callback(update, context):
+async def crypto_callback_menu(update, context):
+    query = update.callback_query
+    paymentmethods = [*CRYPTOPAYMENT,  # Include the payment methods obtained from config_manager
+    [InlineKeyboardButton("<<<Back ", callback_data='Back')]]
+    payment_markup = InlineKeyboardMarkup(paymentmethods)
+    planselected = context.user_data.get('planselected', '')
+    trial=planselected.split()
+    match = re.search(r'\((.*?)\)', trial[2])
+    period = match.group(1)
+    await query.edit_message_text(text=f'Your benefits:\n✅*VIP*\(Channel Access\)\n\nPrice:*{trial[1]}*\nPayment Method:Crypto\nBilling Period:*{period}*\nBilling Mode:*Non recurring* ', reply_markup=payment_markup,parse_mode='MarkdownV2')
+
+async def bank_callback_menu(update, context):
+    query = update.callback_query
+    paymentmethods = [*BANKPAYMENT,  # Include the payment methods obtained from config_manager
+    [InlineKeyboardButton("<<<Back ", callback_data='Back')]]
+    payment_markup = InlineKeyboardMarkup(paymentmethods)
+    planselected = context.user_data.get('planselected', '')
+    trial=planselected.split()
+    match = re.search(r'\((.*?)\)', trial[2])
+    period = match.group(1)
+    await query.edit_message_text(text=f'Your benefits:\n✅*VIP*\(Channel Access\)\n\nPrice:*{trial[1]}*\nPayment Method:Bank\nBilling Period:*{period}*\nBilling Mode:*Non recurring* ', reply_markup=payment_markup,parse_mode='MarkdownV2')
+
+
+
+async def Crypto_payment_callback(update, context):
     query = update.callback_query
     # first_name = update.callback_query.from_user.first_name
     # last_name = update.callback_query.from_user.last_name if update.callback_query.from_user.last_name else ''
@@ -143,7 +167,7 @@ async def Payment_callback(update, context):
         await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Send {trial[1]} for the {trial[0]} {trial[2]} plan to this USDT TRC20 address\n\n Send the Transaction Receipt✅ to "+ CUSTOMERSUPPORT)
         await context.bot.send_message(chat_id=update.effective_chat.id,text=config_manager().get_crypto_address_config()["btc_address"])
 
-async def bank_handler(update,context):
+async def paystack_handler(update,context):
     duration= context.user_data.get('duration', '')
     email = update.message.text
     first_name = update.message.from_user.first_name
@@ -170,6 +194,28 @@ async def bank_handler(update,context):
         await update.message.reply_text("Invalid email address. Please enter a valid email.")
         return INPUT
 
+async def stripe_handler(update,context):
+    query = update.callback_query
+    duration= context.user_data.get('duration', '')
+    payment_method= query.data
+    if(duration==14):
+        print(update.effective_chat.id)
+        url=await create_stripe_checkout(update.effective_chat.id,duration,TWOWEEKPRICE)
+        print("checkout url",url)
+        button = InlineKeyboardButton(text="💳 Subscribe", url=url)
+        subscribe_markup = InlineKeyboardMarkup([[button]])
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Please click the button below:", reply_markup=subscribe_markup)
+    if(duration==30):
+        url=await create_stripe_checkout(update.effective_chat.id,duration,ONEMONTHPRICE)
+        button = InlineKeyboardButton(text="💳 Subscribe", url=url)
+        subscribe_markup = InlineKeyboardMarkup([[button]])
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Please click the button below:", reply_markup=subscribe_markup)
+    if(duration==99999):
+        url=await create_stripe_checkout(update.effective_chat.id,duration,LIFETIMEPRICE)
+        button = InlineKeyboardButton(text="💳 Subscribe", url=url)
+        subscribe_markup = InlineKeyboardMarkup([[button]])
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Please click the button below:", reply_markup=subscribe_markup)
+    
 
 async def Back_command(update,context):
     query = update.callback_query
@@ -209,7 +255,7 @@ def userInterface_main(dp):
     conv_handler = ConversationHandler(
     entry_points=[(CallbackQueryHandler(start_email, pattern=r'Payment\(Paystack\)'))],
     states={
-        INPUT: [MessageHandler(filters.TEXT & ~filters.COMMAND, bank_handler)],
+        INPUT: [MessageHandler(filters.TEXT & ~filters.COMMAND, paystack_handler)],
     },
     fallbacks=[]
 )
@@ -218,6 +264,9 @@ def userInterface_main(dp):
     dp.add_handler(CommandHandler("help",help_command))
     dp.add_handler(CallbackQueryHandler(Back_command,pattern=re.compile(r'\b\w*Back\w*\b')))
     dp.add_handler(CallbackQueryHandler(service_callback,pattern = re.compile(r'\b\w*VIP\w*\b')))
-    dp.add_handler(CallbackQueryHandler(Payment_callback,pattern=re.compile(r'Payment\(BinancePay\)|Payment\(CryptoBTC\)|Payment\(CryptoUSDT\)|Payment\(BinancePay\)')))
+    dp.add_handler(CallbackQueryHandler(Crypto_payment_callback,pattern=re.compile(r'Payment\(BinancePay\)|Payment\(CryptoBTC\)|Payment\(CryptoUSDT\)|Payment\(BinancePay\)')))
+    dp.add_handler(CallbackQueryHandler(stripe_handler,pattern=re.compile(r'Payment\(Stripe\)')))
+    dp.add_handler(CallbackQueryHandler(crypto_callback_menu,pattern=re.compile(r'Payment\(Crypto\)')))
+    dp.add_handler(CallbackQueryHandler(bank_callback_menu,pattern=re.compile(r'Payment\(Bank\)')))
 
 

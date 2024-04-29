@@ -74,7 +74,7 @@ class ConfigurationManager:
         return self.__get_config('nowpayment')
 
     def get_stripe_config(self):
-        return self.__get_config('nowpayment')
+        return self.__get_config('stripe')
 
     # Method to get Paystack configuration data
     def get_paystack_config(self):
@@ -87,13 +87,17 @@ class ConfigurationManager:
     # Method to get Crypto Address configuration data
     def get_crypto_address_config(self):
         return self.__get_config('crypto_address')
-    def get_available_payment_methods(self):
+    def get_available_bank_methods(self):
         available_methods = []
-
-        if self.__get_config('paystack'):
-            available_methods.append([InlineKeyboardButton("💳 Paystack", callback_data='Payment(Paystack)')])
         if self.__get_config('stripe'):
             available_methods.append([InlineKeyboardButton("💳 Stripe", callback_data='Payment(Stripe)')])
+
+        if self.__get_config('paystack'):
+            available_methods.append([InlineKeyboardButton("🏦 Paystack", callback_data='Payment(Paystack)')])
+       
+        return available_methods
+    def get_available_crypto_methods(self):
+        available_methods = []
         if self.__get_config('binance'):
             available_methods.append([InlineKeyboardButton("💰 Binance Pay", callback_data='Payment(BinancePay)')])
         if self.__get_config('coinpayment'):
@@ -102,9 +106,9 @@ class ConfigurationManager:
         if self.__get_config('nowpayment'):
             available_methods.append([InlineKeyboardButton("💲 Nowpayment", callback_data='Payment(Nowpayment)')])
 
-        # if self.__get_config('crypto_address'):
-        #     # available_methods.append([InlineKeyboardButton("⚡️ BTC (Bitcoin)", callback_data='Payment(CryptoBTC)')])
-        #     available_methods.append([InlineKeyboardButton("💲 USDT (TRC20)", callback_data='Payment(CryptoUSDT)')])
+        if self.__get_config('crypto_address'):
+            # available_methods.append([InlineKeyboardButton("⚡️ BTC (Bitcoin)", callback_data='Payment(CryptoBTC)')])
+            available_methods.append([InlineKeyboardButton("💲 USDT (TRC20)", callback_data='Payment(CryptoUSDT)')])
 
         return available_methods
 

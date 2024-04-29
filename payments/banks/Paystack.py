@@ -22,7 +22,7 @@ async def create_paystack_checkout(telegramId,firstName,email,price,duration):
     payload = {
         'key': PAYSTACK_CONFIG["paystack_publickey"],
         'email': email,
-        'amount': int(price) * 1600 * 100,  # Amount should be in kobo (the smallest unit of currency in Nigeria)
+        'amount': int(price) * 1400 * 100,  # Amount should be in kobo (the smallest unit of currency in Nigeria)
         'currency': 'NGN',
         'channels': ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer'],
         'metadata':  {'telegramId':telegramId,"duration":duration,"firstName":firstName},

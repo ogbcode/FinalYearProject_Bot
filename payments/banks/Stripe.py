@@ -1,39 +1,99 @@
-API_key ="sk_test_51OBxysCFLuGCoy5bsn3FDabxe7njlEoIjtzNkn2rIn0snLtsa6l0so0HleK3irojdbO0rnKBUkV2GjIpzonFMFFG00RjLSQSsP"
+import asyncio
+import os
+import string
+from quart import Quart, jsonify, request
 import stripe
+import stripe.webhook
+from urllib3 import HTTPResponse
+from bot.userManagment import add_transaction, add_user_to_group, convert_country_code
+from config.quartServer import app
 
-# Set your Stripe secret key
-stripe.api_key =API_key
 
-def create_checkout_session(amount, currency='usd'):
+from config.config_management import config_manager
+stripe.api_key =config_manager().get_stripe_config()["stripe_apikey"]
+
+metadata=config_manager().get_metadata_config()
+
+def set_webhook(url):
+    try:
+        webhook=stripe.WebhookEndpoint.create(
+            enabled_events= ['charge.succeeded', 'charge.failed'],
+            url=url
+        )
+        return(webhook.secret)
+    except stripe.error.StripeError as e:
+        print("Error creating webhook endpoint:", e)
+# set_webhook(f"{os.getenv('domain')}/stripe")
+def verify_stripe_webhook(body,signature):
+  ENPOINTSECRET="whsec_QORLxyb6SNy6wOpjM37KTKUjzOUSCjDO"
+  payload = body
+  sig_header = signature
+  try:
+    event = stripe.Webhook.construct_event(
+      payload, sig_header, ENPOINTSECRET
+    )
+    return True
+  except Exception as e:
+    # print(e)
+    return False
+
+async def create_stripe_checkout(telegramId,duration,amount):
     try:
         session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
+            payment_method_types=['card','cashapp'],
             line_items=[{
                 'price_data': {
-                    'currency': currency,
+                    'currency':'usd',
                     'product_data': {
-                        'name': 'Your Product Name',
+                        'name':metadata['name'],
                     },
-                    'unit_amount': amount,
+                    'unit_amount': int(amount)*100,
                 },
                 'quantity': 1,
             }],
             mode='payment',
-            success_url='https://example.com/success',
-            cancel_url='https://example.com/cancel',
+            success_url=metadata['success_url'],
+            metadata={"duration":str(duration),"telegramId":str(telegramId)}
         )
-        return session.id
+        return session.url
     except stripe.error.StripeError as e:
-        return str(e)
+        print (e)
+processedPayments=set()
 
-if __name__ == "__main__":
-    # Set the payment amount in cents
-    payment_amount = 1000  # $10.00
+@app.route('/stripe', methods=['POST'])
+async def stripeWebhook():
+    try:
+        event_data = await request.get_json()
+        transactid=event_data["id"]
+        if transactid in processedPayments:
+            return jsonify({"message": "Payment already processed"}), 200
+        signature = request.headers.get('Stripe-Signature')
+        body=await  request.get_data(as_text=True)
+        if not verify_stripe_webhook(body,signature):
+            return jsonify({"message": "Bad Request"}), 400
 
-    session_id = create_checkout_session(payment_amount)
+        payment_status = event_data.get("data", {}).get("object", {}).get("payment_status")
 
-    if "Error:" in session_id:
-        print(f"Error creating Checkout Session: {session_id}")
-    else:
-        checkout_url = f"https://checkout.stripe.com/{session_id}"
-        print(f"Checkout URL: {checkout_url}")
+
+        if payment_status == 'paid':
+            processedPayments.add(transactid)
+            transaction_id = event_data.get("data", {}).get("object", {}).get("id")
+            amount = event_data.get("data", {}).get("object", {}).get("amount_total") / 100
+            firstName = event_data.get("data", {}).get("object", {}).get("customer_details", {}).get("name")
+            telegramId = event_data.get("data", {}).get("object", {}).get("metadata", {}).get("telegramId")
+            duration = event_data.get("data", {}).get("object", {}).get("metadata", {}).get("duration")
+            country = event_data.get("data", {}).get("object", {}).get("customer_details", {}).get("address", {}).get("country")
+
+            await add_user_to_group(user_id=telegramId,first_name=firstName,duration=duration)
+            await add_transaction(transaction_id,"SUCCESS",str(amount),"USD","Stripe",duration,telegramId,convert_country_code(country))
+            return jsonify({"message": "Verification Succes"}), 200
+        
+        return jsonify({"message": "Verification failed"}), 400
+
+
+    except Exception as e:
+        print(e) 
+        return jsonify({"error": "Internal server Error"}), 500
+  
+
+ 
