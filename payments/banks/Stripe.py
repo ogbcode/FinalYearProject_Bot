@@ -25,16 +25,16 @@ def set_webhook(url):
         print("Error creating webhook endpoint:", e)
 # set_webhook(f"{os.getenv('domain')}/stripe")
 def verify_stripe_webhook(body,signature):
-  ENPOINTSECRET="whsec_QORLxyb6SNy6wOpjM37KTKUjzOUSCjDO"
+  endpoint_secret=config_manager().get_stripe_config()["stripe_secret"]
   payload = body
   sig_header = signature
   try:
     event = stripe.Webhook.construct_event(
-      payload, sig_header, ENPOINTSECRET
+      payload, sig_header, endpoint_secret
     )
     return True
   except Exception as e:
-    # print(e)
+    print(e)
     return False
 
 async def create_stripe_checkout(telegramId,duration,amount):
