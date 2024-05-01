@@ -19,6 +19,7 @@ from config.config_management import config_manager
 from bot.userManagment import execute_query
 from config.quartServer import backend_url
 from payments.crypto.coinPayments import create_coinpayment_transaction
+from payments.crypto.nowPayments import create_nowpayment_invoice
 TWOWEEKPRICE=config_manager().get_metadata_config()['twoweeks_price']
 ONEMONTHPRICE=config_manager().get_metadata_config()['onemonth_price']
 LIFETIMEPRICE=config_manager().get_metadata_config()['lifetime_price']
@@ -151,6 +152,11 @@ async def Crypto_payment_callback(update, context):
     priceSplit = priceDollars.split('$')[1]
     price = int(priceSplit)
 
+    if (payment_method=='Payment(Nowpayment)'):
+        url=await create_nowpayment_invoice(update.effective_chat.id,duration,price)
+        button = InlineKeyboardButton(text="⚡️ Subscribe", url=url)
+        subscribe_markup = InlineKeyboardMarkup([[button]])
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Please click the button below:", reply_markup=subscribe_markup)
     if (payment_method=='Payment(BinancePay)'):
         
         data=await send_signed_request(chat_id=chatid,amount=price,duration=duration,api_key=config_manager().get_binance_config()["binance_apikey"],secret_key=config_manager().get_binance_config()["binance_secretkey"])
@@ -275,7 +281,7 @@ def userInterface_main(dp):
     dp.add_handler(CommandHandler("help",help_command))
     dp.add_handler(CallbackQueryHandler(Back_command,pattern=re.compile(r'\b\w*Back\w*\b')))
     dp.add_handler(CallbackQueryHandler(service_callback,pattern = re.compile(r'\b\w*VIP\w*\b')))
-    dp.add_handler(CallbackQueryHandler(Crypto_payment_callback,pattern=re.compile(r'Payment\(BinancePay\)|Payment\(CryptoBTC\)|Payment\(CryptoUSDT\)')))
+    dp.add_handler(CallbackQueryHandler(Crypto_payment_callback,pattern=re.compile(r'Payment\(BinancePay\)|Payment\(CryptoBTC\)|Payment\(CryptoUSDT\)|Payment\(Nowpayment\)')))
     dp.add_handler(CallbackQueryHandler(stripe_handler,pattern=re.compile(r'Payment\(Stripe\)')))
     dp.add_handler(CallbackQueryHandler(crypto_callback_menu,pattern=re.compile(r'Payment\(Crypto\)')))
     dp.add_handler(CallbackQueryHandler(bank_callback_menu,pattern=re.compile(r'Payment\(Bank\)')))
