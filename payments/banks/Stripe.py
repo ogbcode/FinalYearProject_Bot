@@ -84,8 +84,9 @@ async def stripeWebhook():
             duration = event_data.get("data", {}).get("object", {}).get("metadata", {}).get("duration")
             country = event_data.get("data", {}).get("object", {}).get("customer_details", {}).get("address", {}).get("country")
 
-            await add_user_to_group(user_id=telegramId,first_name=firstName,duration=duration)
             await add_transaction(transaction_id,"SUCCESS",str(amount),"USD","Stripe",duration,telegramId,convert_country_code(country))
+            await add_user_to_group(user_id=telegramId,first_name=firstName,duration=duration)
+           
             return jsonify({"message": "Verification Succes"}), 200
         
         return jsonify({"message": "Verification failed"}), 400

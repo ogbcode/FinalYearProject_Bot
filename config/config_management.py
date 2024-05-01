@@ -106,9 +106,9 @@ class ConfigurationManager:
         if self.__get_config('nowpayment'):
             available_methods.append([InlineKeyboardButton("💲 Nowpayment", callback_data='Payment(Nowpayment)')])
 
-        if self.__get_config('crypto_address'):
-            # available_methods.append([InlineKeyboardButton("⚡️ BTC (Bitcoin)", callback_data='Payment(CryptoBTC)')])
-            available_methods.append([InlineKeyboardButton("💲 USDT (TRC20)", callback_data='Payment(CryptoUSDT)')])
+        # if self.__get_config('crypto_address'):
+        #     # available_methods.append([InlineKeyboardButton("⚡️ BTC (Bitcoin)", callback_data='Payment(CryptoBTC)')])
+        #     available_methods.append([InlineKeyboardButton("💲 USDT (TRC20)", callback_data='Payment(CryptoUSDT)')])
 
         return available_methods
 

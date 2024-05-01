@@ -18,6 +18,7 @@ from payments.banks.Paystack import create_paystack_checkout
 from config.config_management import config_manager
 from bot.userManagment import execute_query
 from config.quartServer import backend_url
+from payments.crypto.coinPayments import create_coinpayment_transaction
 TWOWEEKPRICE=config_manager().get_metadata_config()['twoweeks_price']
 ONEMONTHPRICE=config_manager().get_metadata_config()['onemonth_price']
 LIFETIMEPRICE=config_manager().get_metadata_config()['lifetime_price']
@@ -27,6 +28,7 @@ BANKPAYMENT=config_manager().get_available_bank_methods()
 CRYPTOPAYMENT=config_manager().get_available_crypto_methods()
 # print(PAYMENTMETHODS)
 COMMAND, INPUT = range(2)
+COMMAND2, INPUT2 = range(2)
 BOTID=os.getenv("botId")
 USERID=os.getenv("userId")
 
@@ -144,12 +146,13 @@ async def Crypto_payment_callback(update, context):
     planselected = context.user_data.get('planselected', '')
     duration= context.user_data.get('duration', '')
     payment_method= query.data
-    
+    chatid=update.effective_chat.id
+    priceDollars = context.user_data.get('price', '')
+    priceSplit = priceDollars.split('$')[1]
+    price = int(priceSplit)
+
     if (payment_method=='Payment(BinancePay)'):
-        priceDollars = context.user_data.get('price', '')
-        priceSplit = priceDollars.split('$')[1]
-        price = int(priceSplit)
-        chatid=update.effective_chat.id
+        
         data=await send_signed_request(chat_id=chatid,amount=price,duration=duration,api_key=config_manager().get_binance_config()["binance_apikey"],secret_key=config_manager().get_binance_config()["binance_secretkey"])
         qrcodePhoto= data['data']['qrcodeLink']
         link_text = 'Open Binance app to complete payment '
@@ -157,6 +160,7 @@ async def Crypto_payment_callback(update, context):
         message_text = f'<a href="{deeplink_url}">{link_text}</a>'+'\n\nOR'+'\n\nScan the Qr code below to complete the payment.(valid for only 1 hour) '
         await context.bot.send_message(chat_id=update.effective_chat.id, text=message_text, parse_mode=ParseMode.HTML,disable_web_page_preview=True)
         await context.bot.send_photo(chat_id=update.effective_chat.id, photo=qrcodePhoto)
+
     if (payment_method=='Payment(CryptoBTC)'):
         trial=planselected.split()
         await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Send {trial[1]} for the {trial[0]} {trial[2]} plan to this BTC(Bitcoin) address\n\n Send the Transaction Receipt✅ to "+ CUSTOMERSUPPORT)
@@ -166,56 +170,60 @@ async def Crypto_payment_callback(update, context):
         trial=planselected.split()
         await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Send {trial[1]} for the {trial[0]} {trial[2]} plan to this USDT TRC20 address\n\n Send the Transaction Receipt✅ to "+ CUSTOMERSUPPORT)
         await context.bot.send_message(chat_id=update.effective_chat.id,text=config_manager().get_crypto_address_config()["btc_address"])
+async def coinpayment_handler(update,context):
+    duration= context.user_data.get('duration', '')
+    email = update.message.text
+    chat_id=update.effective_chat.id
+    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    priceDollars = context.user_data.get('price', '')
+    priceSplit = priceDollars.split('$')[1]
+    price = int(priceSplit)
+
+    if re.match(email_pattern, email):
+        transaction=create_coinpayment_transaction(chat_id,duration,price,email)
+        amount = transaction['amount']
+        blockchain = 'Litecoin Testnet'
+        status_url=transaction['transaction_status']
+        qrcodePhoto=transaction['qr_code']
+        address=transaction['address']
+        transaction_status_link = f'<a href="{status_url}">Transaction Status</a>'
+        message_text = f"Please send {amount} LTCT ({blockchain}) (exact amount, after commissions) to the following address:\n\n{address}\n\nThis unique address is valid only for 1 hour. Your payment will be processed by CoinPayments.\n\nYou can check your transaction status here.\n\n{transaction_status_link}"
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=message_text, parse_mode=ParseMode.HTML,disable_web_page_preview=True)
+        await context.bot.send_photo(chat_id=update.effective_chat.id, photo=qrcodePhoto)
+        return ConversationHandler.END
+    else:
+        await update.message.reply_text("Invalid email address")
+        return ConversationHandler.END
+        
 
 async def paystack_handler(update,context):
     duration= context.user_data.get('duration', '')
     email = update.message.text
     first_name = update.message.from_user.first_name
     email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    priceDollars = context.user_data.get('price', '')
+    priceSplit = priceDollars.split('$')[1]
+    price = int(priceSplit)
     if re.match(email_pattern, email):
-        if(duration==14):
-            url=await create_paystack_checkout(update.effective_chat.id,first_name,email,TWOWEEKPRICE,duration)
-            # print(url)
-            button = InlineKeyboardButton(text="💳 Subscribe", url=url)
-            subscribe_markup = InlineKeyboardMarkup([[button]])
-            await context.bot.send_message(chat_id=update.effective_chat.id, text="Please click the button below:", reply_markup=subscribe_markup)
-        if(duration==30):
-            url=await create_paystack_checkout(update.effective_chat.id,first_name,email,ONEMONTHPRICE,duration)
-            button = InlineKeyboardButton(text="💳 Subscribe", url=url)
-            subscribe_markup = InlineKeyboardMarkup([[button]])
-            await context.bot.send_message(chat_id=update.effective_chat.id, text="Please click the button below:", reply_markup=subscribe_markup)
-        if(duration==99999):
-            url=await create_paystack_checkout(update.effective_chat.id,first_name,email,LIFETIMEPRICE,duration)
-            button = InlineKeyboardButton(text="💳 Subscribe", url=url)
-            subscribe_markup = InlineKeyboardMarkup([[button]])
-            await context.bot.send_message(chat_id=update.effective_chat.id, text="Please click the button below:", reply_markup=subscribe_markup)
+        url=await create_paystack_checkout(update.effective_chat.id,first_name,email,price,duration)
+        button = InlineKeyboardButton(text="💳 Subscribe", url=url)
+        subscribe_markup = InlineKeyboardMarkup([[button]])
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Please click the button below:", reply_markup=subscribe_markup)
         return ConversationHandler.END
     else:
-        await update.message.reply_text("Invalid email address. Please enter a valid email.")
-        return INPUT
+        await update.message.reply_text("Invalid email address.")
+        return ConversationHandler.END
+       
 
 async def stripe_handler(update,context):
-    query = update.callback_query
     duration= context.user_data.get('duration', '')
-    payment_method= query.data
-    if(duration==14):
-        print(update.effective_chat.id)
-        url=await create_stripe_checkout(update.effective_chat.id,duration,TWOWEEKPRICE)
-        print("checkout url",url)
-        button = InlineKeyboardButton(text="💳 Subscribe", url=url)
-        subscribe_markup = InlineKeyboardMarkup([[button]])
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="Please click the button below:", reply_markup=subscribe_markup)
-    if(duration==30):
-        url=await create_stripe_checkout(update.effective_chat.id,duration,ONEMONTHPRICE)
-        button = InlineKeyboardButton(text="💳 Subscribe", url=url)
-        subscribe_markup = InlineKeyboardMarkup([[button]])
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="Please click the button below:", reply_markup=subscribe_markup)
-    if(duration==99999):
-        url=await create_stripe_checkout(update.effective_chat.id,duration,LIFETIMEPRICE)
-        button = InlineKeyboardButton(text="💳 Subscribe", url=url)
-        subscribe_markup = InlineKeyboardMarkup([[button]])
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="Please click the button below:", reply_markup=subscribe_markup)
-    
+    priceDollars = context.user_data.get('price', '')
+    priceSplit = priceDollars.split('$')[1]
+    price = int(priceSplit)
+    url=await create_stripe_checkout(update.effective_chat.id,duration,price)
+    button = InlineKeyboardButton(text="💳 Subscribe", url=url)
+    subscribe_markup = InlineKeyboardMarkup([[button]])
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="Please click the button below:", reply_markup=subscribe_markup)
 
 async def Back_command(update,context):
     query = update.callback_query
@@ -239,32 +247,35 @@ async def start_email(update, context):
     await context.bot.send_message(chat_id=update.effective_chat.id,text="Please send your email address.")
     return INPUT
 
-async def get_email(update, context):
-    emailAddress = update.message.text
-    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    
-    if re.match(email_pattern, emailAddress):
-        context.user_data['email'] = emailAddress
-        return ConversationHandler.END
-    else:
-        await update.message.reply_text("Invalid email address. Please enter a valid email.")
-        return INPUT
+async def start_email2(update, context):
+    await context.bot.send_message(chat_id=update.effective_chat.id,text="Please send your email address.")
+    return INPUT2
+
+
     
      
 def userInterface_main(dp):
-    conv_handler = ConversationHandler(
+    conv_handler_paystack = ConversationHandler(
     entry_points=[(CallbackQueryHandler(start_email, pattern=r'Payment\(Paystack\)'))],
     states={
         INPUT: [MessageHandler(filters.TEXT & ~filters.COMMAND, paystack_handler)],
     },
     fallbacks=[]
 )
-    dp.add_handler(conv_handler)
+    conv_handler_coinpayment = ConversationHandler(
+    entry_points=[(CallbackQueryHandler(start_email2, pattern=r'Payment\(Coinpayment\)'))],
+    states={
+        INPUT2: [MessageHandler(filters.TEXT & ~filters.COMMAND, coinpayment_handler)],
+    },
+    fallbacks=[]
+)
+    dp.add_handler(conv_handler_paystack)
+    dp.add_handler(conv_handler_coinpayment)
     dp.add_handler(CommandHandler("start",start_command))
     dp.add_handler(CommandHandler("help",help_command))
     dp.add_handler(CallbackQueryHandler(Back_command,pattern=re.compile(r'\b\w*Back\w*\b')))
     dp.add_handler(CallbackQueryHandler(service_callback,pattern = re.compile(r'\b\w*VIP\w*\b')))
-    dp.add_handler(CallbackQueryHandler(Crypto_payment_callback,pattern=re.compile(r'Payment\(BinancePay\)|Payment\(CryptoBTC\)|Payment\(CryptoUSDT\)|Payment\(BinancePay\)')))
+    dp.add_handler(CallbackQueryHandler(Crypto_payment_callback,pattern=re.compile(r'Payment\(BinancePay\)|Payment\(CryptoBTC\)|Payment\(CryptoUSDT\)')))
     dp.add_handler(CallbackQueryHandler(stripe_handler,pattern=re.compile(r'Payment\(Stripe\)')))
     dp.add_handler(CallbackQueryHandler(crypto_callback_menu,pattern=re.compile(r'Payment\(Crypto\)')))
     dp.add_handler(CallbackQueryHandler(bank_callback_menu,pattern=re.compile(r'Payment\(Bank\)')))

@@ -16,6 +16,7 @@ from quart import Response, abort, request
 from payments.banks.Paystack import paystackWebhook
 from payments.crypto.binancePay import binacepayWebhook
 from payments.banks.Stripe import stripeWebhook
+from payments.crypto.coinPayments import coinpaymentwebhook
 from config.quartServer import app
 from config.config_management import config_manager
 load_dotenv()

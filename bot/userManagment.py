@@ -19,9 +19,9 @@ ADMINID=int(config_manager().get_metadata_config()["adminId"])
 BOTID=os.getenv("botId")
 def get_image_stream():
     # Deployed
-    image_path ="vip.jpg"
+    # image_path ="vip.jpg"
     # local
-    # image_path=r"C:\Users\tradi\Documents\PROJECTS\FINAL YEAR PROJECT\TelegramBot\Telegram_bot\vip.jpg"
+    image_path=r"C:\Users\tradi\Documents\PROJECTS\FINAL YEAR PROJECT\TelegramBot\Telegram_bot\vip.jpg"
 
     image = Image.open(image_path)
     image_stream = BytesIO()
