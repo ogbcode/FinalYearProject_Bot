@@ -4,7 +4,6 @@ import json
 import os
 from urllib.parse import parse_qs, urlencode
 import requests
-from pycoinpayments.coinpayments import CoinPayments
 from bot.userManagment import add_user_to_group,add_transaction
 from config.config_management import config_manager
 # Replace these values with your actual CoinPayments API keys
