@@ -6,20 +6,32 @@ import time
 import uuid
 
 import requests
-from payments.banks.Stripe import create_stripe_checkout
-from payments.crypto.binancePay import send_signed_request
+
 from config.Database import pool
 import logging
 from telegram.constants import ParseMode
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, MessageHandler, filters, ConversationHandler,CallbackQueryHandler
 from telegram import Update
-from payments.banks.Paystack import create_paystack_checkout
+
 from config.config_management import config_manager
-from bot.userManagment import execute_query
 from config.quartServer import backend_url
-from payments.crypto.coinPayments import create_coinpayment_transaction
-from payments.crypto.nowPayments import create_nowpayment_invoice
+
+if config_manager().get_paystack_config():
+    from payments.banks.Paystack import create_paystack_checkout
+
+if config_manager().get_stripe_config():
+    from payments.banks.Stripe import create_stripe_checkout
+
+if config_manager().get_binance_config():
+    from payments.crypto.binancePay import send_signed_request
+
+if config_manager().get_coinpayment_config():
+    from payments.crypto.coinPayments import create_coinpayment_transaction
+
+if config_manager().get_nowpayment_config():
+    from payments.crypto.nowPayments import create_nowpayment_invoice
+
 TWOWEEKPRICE=config_manager().get_metadata_config()['twoweeks_price']
 ONEMONTHPRICE=config_manager().get_metadata_config()['onemonth_price']
 LIFETIMEPRICE=config_manager().get_metadata_config()['lifetime_price']
