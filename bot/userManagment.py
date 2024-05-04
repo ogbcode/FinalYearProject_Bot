@@ -4,7 +4,6 @@ import uuid
 import pycountry
 import pymysql
 import requests
-from sqlalchemy import null
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import os
 from io import BytesIO
