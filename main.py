@@ -13,12 +13,23 @@ from bot.userInterface import userInterface_main
 from bot.Token import Token_main
 from bot.userManagment import userManagement_main
 from quart import Response, abort, request
-from payments.banks.Paystack import paystackWebhook
-from payments.crypto.binancePay import binacepayWebhook
-from payments.banks.Stripe import stripeWebhook
-from payments.crypto.coinPayments import coinpaymentwebhook
-from config.quartServer import app
 from config.config_management import config_manager
+if config_manager().get_paystack_config():
+    from payments.banks.Paystack import paystackWebhook
+    
+if config_manager().get_binance_config():
+    from payments.crypto.binancePay import binacepayWebhook
+
+if config_manager().get_stripe_config():
+    from payments.banks.Stripe import stripeWebhook
+
+if config_manager().get_coinpayment_config():
+    from payments.crypto.coinPayments import coinpaymentwebhook
+if config_manager().get_nowpayment_config():
+    from payments.crypto.nowPayments import nowpayments_webhook
+    
+from config.quartServer import app
+
 load_dotenv()
 
 async def main():
