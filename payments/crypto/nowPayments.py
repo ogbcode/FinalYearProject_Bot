@@ -75,7 +75,7 @@ async def nowpayments_webhook():
             dur_number_match = re.search(r'dur(\d+)',order_id)
             duration = dur_number_match.group(1)
             processedPayments.add(transaction_id)
-            await add_transaction(transaction_id, 'SUCCESS', amount, currency, 'CoinPayment', duration, telegram_id, "Unknown")
+            await add_transaction(transaction_id, 'SUCCESS', amount, currency, 'NowPayments', duration, telegram_id, "Unknown")
             await add_user_to_group(user_id=telegram_id, duration=duration)
             return jsonify({"message": "Verification success"}), 200
         else:

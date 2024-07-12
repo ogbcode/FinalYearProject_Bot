@@ -92,7 +92,7 @@ async def coinpaymentwebhook():
             telegram_id = data.get('telegramId')
             duration = data.get('duration')
             processedPayments.add(transaction_id)
-            await add_transaction(transaction_id, 'SUCCESS', amount, currency, 'CoinPayment', duration, telegram_id, "Unknown")
+            await add_transaction(transaction_id, 'SUCCESS', amount, currency, 'CoinPayments', duration, telegram_id, "Unknown")
             await add_user_to_group(user_id=telegram_id, duration=duration)
             return jsonify({"message": "Verification Success"}), 200
         else:

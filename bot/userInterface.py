@@ -293,9 +293,6 @@ def userInterface_main(dp):
     dp.add_handler(CommandHandler("help",help_command))
     dp.add_handler(CallbackQueryHandler(Back_command,pattern=re.compile(r'\b\w*Back\w*\b')))
     dp.add_handler(CallbackQueryHandler(service_callback,pattern = re.compile(r'\b\w*VIP\w*\b')))
-    dp.add_handler(CallbackQueryHandler(Crypto_payment_callback,pattern=re.compile(r'Payment\(BinancePay\)|Payment\(CryptoBTC\)|Payment\(CryptoUSDT\)|Payment\(Nowpayment\)')))
     dp.add_handler(CallbackQueryHandler(stripe_handler,pattern=re.compile(r'Payment\(Stripe\)')))
     dp.add_handler(CallbackQueryHandler(crypto_callback_menu,pattern=re.compile(r'Payment\(Crypto\)')))
     dp.add_handler(CallbackQueryHandler(bank_callback_menu,pattern=re.compile(r'Payment\(Bank\)')))
-
-

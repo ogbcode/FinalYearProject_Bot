@@ -148,11 +148,11 @@ async def remove_expiredsubscribers():
                         values=(str(chatid),BOTID)
                         await execute_query(query,values)
                         await bot.kick_chat_member(chat_id=GROUPCHATID, user_id=chatid)
-                        await bot.send_message(chat_id=chatid, text = "Your INNER ⭕️ membership subscription has expired, and you have been removed from the group. Click 👉👉👉 /start 👈👈👈 to renew and regain access!")
+                        await bot.send_message(chat_id=chatid, text = "Your  membership subscription has expired, and you have been removed from the group. Click 👉👉👉 /start 👈👈👈 to renew and regain access!")
                         await bot.send_message(chat_id=int(ADMINID), text=f"User {username} subscription has expired and has been removed from the group✅")
                     except:
                         await bot.kick_chat_member(chat_id=GROUPCHATID, user_id=chatid)
-                        await bot.send_message(chat_id=chatid,text = "Your INNER ⭕️ membership subscription has expired, and you have been removed from the group. Click 👉👉👉 /start 👈👈👈 to renew and regain access!"
+                        await bot.send_message(chat_id=chatid,text = "Your membership subscription has expired, and you have been removed from the group. Click 👉👉👉 /start 👈👈👈 to renew and regain access!"
     )
                         await bot.send_message(chat_id=int(ADMINID), text=f"User {username} subscription has expired and has been removed from the group✅")
                 except Exception as e:
@@ -282,16 +282,16 @@ async def membershipstatus(update,context):
             years = int(time_days[0]) //365
             days = int(time_days[0]) % 365
             if(years==0):
-                await context.bot.send_message(chat_id=update.effective_chat.id, text=f"PIPSMATRIX INNER ⭕️\n\nTime Left:{str(days)} days\n\nYour payment is valid until:\n📅{formatted_expirydate}\n\nEnjoy your exclusive access✅")
+                await context.bot.send_message(chat_id=update.effective_chat.id, text=f"\n\nTime Left:{str(days)} days\n\nYour payment is valid until:\n📅{formatted_expirydate}\n\nEnjoy your exclusive access✅")
             else:
                 if (years>10):
                     years="Unlimited"
-                    await context.bot.send_message(chat_id=update.effective_chat.id, text=f"PIPSMATRIX INNER ⭕️\n\nTime Left:{years}\n\nYour payment is valid until:\n📅{formatted_expirydate}\n\nEnjoy your exclusive access✅")
+                    await context.bot.send_message(chat_id=update.effective_chat.id, text=f"\n\nTime Left:{years}\n\nYour payment is valid until:\n📅{formatted_expirydate}\n\nEnjoy your exclusive access✅")
                 else:
-                    await context.bot.send_message(chat_id=update.effective_chat.id, text=f"PIPSMATRIX INNER ⭕️\n\nTime Left:{str(years)} years and {str(days)} days\n\nYour payment is valid until:\n📅{formatted_expirydate}\n\nEnjoy your exclusive access✅")
+                    await context.bot.send_message(chat_id=update.effective_chat.id, text=f"\n\nTime Left:{str(years)} years and {str(days)} days\n\nYour payment is valid until:\n📅{formatted_expirydate}\n\nEnjoy your exclusive access✅")
     else:
 
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="You are not a member of the INNER ⭕️. Clic/start 👈 to join today")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="You are not a member. Clic/start 👈 to join today")
 
 async def error(update, context):
     try:
