@@ -32,7 +32,6 @@ FIRST_NAMES = [
     'Adebayo', 'Zainab', 'Kwame', 'Fatima', 'Chinedu', 'Ngozi', 'Kofi', 'Amara',
     'Binta', 'Jelani'
 ]
-
 # Helper functions
 def random_date(start, end):
     return start + timedelta(days=random.randint(0, (end - start).days))
@@ -40,10 +39,11 @@ def random_date(start, end):
 def random_transaction_id():
     return ''.join(random.choices('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', k=9))
 
-def create_customer(cursor, first_names):
+def create_customer(cursor):
     customer_id = uuid.uuid4()
-    first_name = random.choice(first_names)
-    first_names.remove(first_name)  # Remove the selected first name to ensure uniqueness
+    listofnames=FIRST_NAMES
+    first_name = random.choice(listofnames)
+    listofnames.remove(first_name) 
     created_at = datetime.now()
     updated_at = created_at
     telegram_id = random.randint(100000, 999999)  # Random telegram ID
@@ -81,20 +81,16 @@ def create_transaction(cursor, customer_id):
 
 # Main function to create customers and transactions
 def main(num_customers, transactions_per_customer):
-    first_names_copy = FIRST_NAMES.copy()  # Create a copy of the first names list to avoid modifying the original
-    if num_customers > len(first_names_copy):
-        raise ValueError("Number of customers exceeds the number of unique first names available.")
-    
     for _ in range(num_customers):
-        customer_id = create_customer(cursor, first_names_copy)
+        customer_id = create_customer(cursor)
         for _ in range(transactions_per_customer):
             create_transaction(cursor, customer_id)
     
     # Commit the transactions
     conn.commit()
-    print(f"Inserted {num_customers} customers with {transactions_per_customer} transactions each.")
+    print(f"Inserted {num_customers} customers  with {transactions_per_customer} transactions each.")
 
 if __name__ == "__main__":
-    main(13, 50)  # Adjust the numbers as needed
+    main(10,100)  # Adjust the numbers as needed
     cursor.close()
     conn.close()

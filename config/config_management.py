@@ -156,9 +156,3 @@ def config_manager():
     return ConfigurationManager._instance
 
 
-# Usage example
-# config_mgr = config_manager()
-# metadata_config = config_manager.get_metadata_config()
-# binance_api_key = config_manager().get_config('paystack')["paystack_apikey"]
-# print("Metadata Configuration:", metadata_config)
-# print(config_manager().get_binance_config()["binance_publickey"])

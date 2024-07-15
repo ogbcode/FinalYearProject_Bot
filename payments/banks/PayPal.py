@@ -1,8 +1,8 @@
 import base64
 
 import httpx
-API_KEY="EBuzwtzo1VTcMa0KsA0Oi6ubxI78vaH-UrleDiJ_mj_BQL6r8vCpuW8cBcOaqXgrafGSIm8vOQBeTvgF"
-CLIENT_ID='AbeYnoovx-Iucs7N60OgkM-4zYqvj6W8-iJHZrU6--TS4WeDGHSkt89arcqGpRLsgpCSTtbrhnI4ojvg'
+API_KEY=""
+CLIENT_ID=''
 client_credentials = f"{CLIENT_ID}:{API_KEY}"
 encoded_credentials=base64.b64encode(client_credentials.encode()).decode()
 async def create_paypal_order():
@@ -10,7 +10,7 @@ async def create_paypal_order():
 
     headers = {
         'Content-Type': 'application/json',
-        'PayPal-Request-Id': '7b92603e-77ed-4896-8e78-5dea2050476a',
+        'PayPal-Request-Id': 'ra',
         'Authorization': f"Basic {encoded_credentials}"
     }
 
@@ -18,7 +18,7 @@ async def create_paypal_order():
         "intent": "CAPTURE",
         "purchase_units": [
             {
-                "reference_id": "d9f80740-38f0-11e8-b467-0ed5f89f718b",
+                "reference_id": "drr",
                 "amount": {
                     "currency_code": "USD",
                     "value": "100.00"
