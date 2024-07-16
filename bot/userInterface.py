@@ -84,9 +84,9 @@ async def start_command(update:Update,context):
     firstname=update.message.chat.first_name
     chatid=update.effective_chat.id
     await(insert_into_database(firstname,chatid))
-    services= [  [InlineKeyboardButton(f"VIP ${TWOWEEKPRICE}/2 weeks ", callback_data=f'VIP ${TWOWEEKPRICE} (2weeks)')],
-                 [InlineKeyboardButton(f"VIP ${ONEMONTHPRICE}/1 Month " , callback_data=f'VIP ${ONEMONTHPRICE} (1month)')],
-                 [InlineKeyboardButton(f"VIP ${LIFETIMEPRICE}/Lifetime ", callback_data=f'VIP ${LIFETIMEPRICE} (lifetime)')]]
+    services= [  [InlineKeyboardButton(f"Membership ${TWOWEEKPRICE}/2 weeks ", callback_data=f'VIP ${TWOWEEKPRICE} (2weeks)')],
+                 [InlineKeyboardButton(f"Membership ${ONEMONTHPRICE}/1 Month " , callback_data=f'VIP ${ONEMONTHPRICE} (1month)')],
+                 [InlineKeyboardButton(f"Membership ${LIFETIMEPRICE}/Lifetime ", callback_data=f'VIP ${LIFETIMEPRICE} (lifetime)')]]
                 #  [InlineKeyboardButton("PROPFIRM ACCOUNT PASSING 🚨", callback_data= "PASSAGE")]]
     reply_markup = InlineKeyboardMarkup(services)
     
@@ -245,9 +245,9 @@ async def stripe_handler(update,context):
 
 async def Back_command(update,context):
     query = update.callback_query
-    services= [  [InlineKeyboardButton(f"VIP ${TWOWEEKPRICE}/2 weeks ", callback_data=f'VIP ${TWOWEEKPRICE} (2weeks)')],
-                 [InlineKeyboardButton(f"VIP ${ONEMONTHPRICE}/1 Month " , callback_data=f'VIP ${ONEMONTHPRICE} (1month)')],
-                 [InlineKeyboardButton(f"VIP ${LIFETIMEPRICE}/Lifetime ", callback_data=f'VIP ${LIFETIMEPRICE} (lifetime)')]]
+    services= [  [InlineKeyboardButton(f"Membership ${TWOWEEKPRICE}/2 weeks ", callback_data=f'VIP ${TWOWEEKPRICE} (2weeks)')],
+                 [InlineKeyboardButton(f"Membership ${ONEMONTHPRICE}/1 Month " , callback_data=f'VIP ${ONEMONTHPRICE} (1month)')],
+                 [InlineKeyboardButton(f"Membership ${LIFETIMEPRICE}/Lifetime ", callback_data=f'VIP ${LIFETIMEPRICE} (lifetime)')]]
     reply_markup = InlineKeyboardMarkup(services)
     if(BENEFITS==""):
         user_benefits="Premium service"
