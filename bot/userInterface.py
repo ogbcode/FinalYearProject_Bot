@@ -258,8 +258,8 @@ async def Back_command(update,context):
 Your Benefits:
 {user_benefits}""", reply_markup=reply_markup)
 
-def help_command(update,context):
-    update.message.reply_text(f"Please contact {CUSTOMERSUPPORT} For more payment options or any issues faced")
+async def help_command(update,context):
+    await update.message.reply_text(f"Please contact {CUSTOMERSUPPORT} For more payment options or any issues faced")
 
 async def start_email(update, context):
     await context.bot.send_message(chat_id=update.effective_chat.id,text="Please send your email address.")
